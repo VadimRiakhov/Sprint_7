@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "JSON schema for order get by track",
+  "type": "object",
+  "properties": {
+    "order": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "metroStation": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "rentTime": {
+          "type": "integer"
+        },
+        "deliveryDate": {
+          "type": "string"
+        },
+        "track": {
+          "type": "integer"
+        },
+        "color": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "string"
+          }
+        },
+        "comment": {
+          "type": ["string", "null"]
+        },
+        "cancelled": {
+          "type": "boolean"
+        },
+        "finished": {
+          "type": "boolean"
+        },
+        "inDelivery": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "courierFirstName": {
+          "type": "string"
+        },
+        "status": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "address",
+        "metroStation",
+        "phone",
+        "rentTime",
+        "deliveryDate",
+        "track",
+        "color",
+        "comment",
+        "cancelled",
+        "finished",
+        "inDelivery",
+        "createdAt",
+        "updatedAt",
+        "status"
+      ]
+    }
+  },
+  "required": [
+    "order"
+  ]
+}

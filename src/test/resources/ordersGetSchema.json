@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "JSON schema for OrdersGetTest",
+  "type": "object",
+  "properties": {
+    "orders": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "courierId": {
+            "type": ["string", "null"]
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "metroStation": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "rentTime": {
+            "type": "number"
+          },
+          "deliveryDate": {
+            "type": "string"
+          },
+          "track": {
+            "type": "number"
+          },
+          "color": {
+            "type": ["array", "null"],
+            "items": {
+              "type": "string"
+            }
+          },
+          "comment": {
+            "type": ["string", "null"]
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "status": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "courierId",
+          "firstName",
+          "lastName",
+          "address",
+          "metroStation",
+          "phone",
+          "rentTime",
+          "deliveryDate",
+          "track",
+          "color",
+          "comment",
+          "createdAt",
+          "updatedAt",
+          "status"
+        ]
+      }
+    },
+    "pageInfo": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "number"
+        },
+        "total": {
+          "type": "number"
+        },
+        "limit": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "page",
+        "total",
+        "limit"
+      ]
+    },
+    "availableStations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "number",
+          "color"
+        ]
+      }
+    }
+  },
+  "required": [
+    "orders",
+    "pageInfo",
+    "availableStations"
+  ]
+}
