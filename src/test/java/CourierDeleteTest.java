@@ -1,14 +1,14 @@
 import api.CourierApi;
-import io.qameta.allure.Step;
+import io.qameta.allure.Description;
 import io.restassured.response.ValidatableResponse;
 import model.CourierCreateData;
+import model.CourierGeneratorData;
 import model.CourierLoginData;
 import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.*;
 import io.qameta.allure.junit4.DisplayName;
 
 public class CourierDeleteTest {
@@ -18,13 +18,10 @@ public class CourierDeleteTest {
 
     @Before
     public void setUp() {
-        String login = "John22";
-        String password = "1234";
-        String firstName = "John";
 
         courierApi = new CourierApi();
         // создаем объект класса создания курьера
-        CourierCreateData courierCreateData = new CourierCreateData(login, password, firstName);
+        CourierCreateData courierCreateData = CourierGeneratorData.getRandomCourier();
         // создаем курьера
         courierApi.createCourier(courierCreateData);
         // создаем объект класса логина курьера
@@ -39,63 +36,36 @@ public class CourierDeleteTest {
     public void cleanUp() {
         ValidatableResponse response = courierApi.loginCourier(courierLoginData);
         // если логин был успешным, то удаляем курьера
-        if(response.extract().statusCode()==200){
+        if(response.extract().statusCode()==HttpStatus.SC_OK){
             courierApi.deleteCourier(courierId);
         }
     }
     // удаление курьера с существующим id
     @Test
-    @DisplayName("Delete courier with existing Id")
-    public void deleteCourierExistingId(){
+    @DisplayName("Delete courier with existing id")
+    @Description("Positive test for courier delete with existing id should response Ok")
+    public void deleteCourierExistingIdTest(){
         ValidatableResponse response = courierApi.deleteCourier(courierId);
-        checkResponseForCourierDeleteExistingId(response);
+        courierApi.checkResponseForCourierDeleteExistingId(response);
     }
 
     // удаление курьера с несуществующим id
     @Test
     @DisplayName("Delete courier with nonexistent Id")
-    public void deleteCourierNonexistentId(){
+    @Description("Negative test for courier delete with nonexistent id should response Not found")
+    public void deleteCourierNonexistentIdTest(){
         // несуществующий id курьера
         String nonexistentCourierId = "999999";
         ValidatableResponse response = courierApi.deleteCourier(nonexistentCourierId);
-        checkResponseForCourierDeleteNonexistentId(response);
+        courierApi.checkResponseForCourierDeleteNonexistentId(response);
     }
 
     // удаление курьера с запросом без id
     @Test
     @DisplayName("Delete courier by request without Id")
-    public void deleteCourierWithoutId(){
+    @Description("Negative test for courier delete without id should response Bad request")
+    public void deleteCourierWithoutIdTest(){
         ValidatableResponse response = courierApi.deleteCourier("");
-        checkResponseForCourierDeleteWithoutId(response);
-    }
-
-    // проверка статуса и тела ответа при удалении курьера с существующим id
-    @Step("Check status code and response body for request with existing id")
-    public void checkResponseForCourierDeleteExistingId(ValidatableResponse response){
-        response.log().all()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .and()
-                .body("ok", is(true));
-    }
-
-    // проверка статуса и тела ответа при удалении курьера с несуществующим id
-    @Step("Check status code and response body for request with nonexistent id")
-    public void checkResponseForCourierDeleteNonexistentId(ValidatableResponse response){
-        response.log().all()
-                .assertThat()
-                .statusCode(HttpStatus.SC_NOT_FOUND)
-                .and()
-                .body("message", equalTo("Курьера с таким id нет."));
-    }
-
-    // проверка статуса и тела ответа при отправке запроса без id
-    @Step("Check status code and response body for request without id")
-    public void checkResponseForCourierDeleteWithoutId(ValidatableResponse response){
-        response.log().all()
-                .assertThat()
-                .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .and()
-                .body("message", equalTo( "Недостаточно данных для удаления курьера"));
+        courierApi.checkResponseForCourierDeleteWithoutId(response);
     }
 }

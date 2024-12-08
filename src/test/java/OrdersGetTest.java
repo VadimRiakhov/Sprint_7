@@ -1,12 +1,9 @@
 import api.OrderApi;
-import io.qameta.allure.Step;
+import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
-import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
-import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
-import static org.hamcrest.CoreMatchers.notNullValue;
 
 public class OrdersGetTest {
 
@@ -20,28 +17,18 @@ public class OrdersGetTest {
     // запрос списка заказов без параметров
     @Test
     @DisplayName("Get orders without parameters")
-    public void getOrdersNoParametersResponseOk(){
+    @Description("Positive test for get orders without parameters should response Ok with array of orders")
+    public void getOrdersNoParametersResponseOkTest(){
         ValidatableResponse response = orderApi.getOrders();
-        checkResponseForGetOrders(response);
+        orderApi.checkResponseForGetOrders(response);
     }
     // запрос списка заказов с параметром nearestStation
     @Test
     @DisplayName("get orders by nearest station")
-    public void getOrdersParameterNearestStationResponseOk(){
+    @Description("Positive test for get orders with parameter \"nearestStation\" should response Ok with array of orders")
+    public void getOrdersParameterNearestStationResponseOkTest(){
         String nearestStation = "[\"4\"]";
         ValidatableResponse response = orderApi.getOrdersByNearestStation(nearestStation);
-        checkResponseForGetOrders(response);
-    }
-
-    // проверка статуса и тела ответа
-    @Step("check status code and response body")
-    public void checkResponseForGetOrders(ValidatableResponse response){
-        response.log().all()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .and()
-                .body(notNullValue())
-                .and()
-                .body(matchesJsonSchemaInClasspath("ordersGetSchema.json"));
+        orderApi.checkResponseForGetOrders(response);
     }
 }

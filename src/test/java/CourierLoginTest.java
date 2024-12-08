@@ -1,15 +1,14 @@
 import api.CourierApi;
-import io.qameta.allure.Step;
+import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
 import model.CourierCreateData;
+import model.CourierGeneratorData;
 import model.CourierLoginData;
 import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.hamcrest.Matchers.*;
 
 public class CourierLoginTest {
 
@@ -19,12 +18,9 @@ public class CourierLoginTest {
 
     @Before
     public void setUp() {
-        String login = "John22";
-        String password = "1234";
-        String firstName = "John";
         courierApi = new CourierApi();
         // создаем объект класса создания курьера
-        courierCreateData = new CourierCreateData(login, password, firstName);
+        courierCreateData = CourierGeneratorData.getRandomCourier();
         // создаем курьера
         courierApi.createCourier(courierCreateData);
         // создаем объект класса логина курьера
@@ -37,7 +33,7 @@ public class CourierLoginTest {
 
         ValidatableResponse response = courierApi.loginCourier(courierLoginData);
         // если логин был успешным, то удаляем курьера
-        if(response.extract().statusCode()==200){
+        if(response.extract().statusCode()==HttpStatus.SC_OK){
             String courierId = response
                     .extract().path("id").toString();
             courierApi.deleteCourier(courierId);
@@ -46,79 +42,54 @@ public class CourierLoginTest {
     // логин курьера с существующими учетными данными
     @Test
     @DisplayName("Login courier with existing credentials")
-    public void courierLoginExistingCredentialsOk() {
+    @Description("Positive test for courier Login with valid credentials should response Ok")
+    public void courierLoginExistingCredentialsOkTest() {
         ValidatableResponse response = courierApi.loginCourier(courierLoginData);
-        checkResponseForCourierLoginExistingCredentials(response);
+        courierApi.checkResponseForCourierLoginExistingCredentials(response);
     }
     // логин курьера без поля login
     @Test
     @DisplayName("Login courier without field login")
-    public void courierLoginWithoutLoginResponseBadRequest(){
+    @Description("Negative test for courier Login without field login should response Bad request")
+    public void courierLoginWithoutLoginResponseBadRequestTest(){
         CourierLoginData copyOfCourierLoginData = new CourierLoginData();
         copyOfCourierLoginData.setPassword(courierLoginData.getPassword());
         ValidatableResponse response = courierApi.loginCourier(copyOfCourierLoginData);
-        checkResponseForCourierLoginWithoutMandatoryField(response);
+        courierApi.checkResponseForCourierLoginWithoutMandatoryField(response);
     }
 
     // логин курьера без поля password
     @Test
     @DisplayName("Login courier without field password")
-    public void courierLoginWithoutPasswordResponseBadRequest(){
+    @Description("Negative test for courier Login without field password should response Bad request")
+    public void courierLoginWithoutPasswordResponseBadRequestTest(){
         CourierLoginData copyOfCourierLoginData = new CourierLoginData();
         copyOfCourierLoginData.setLogin(courierLoginData.getLogin());
         ValidatableResponse response = courierApi.loginCourier(copyOfCourierLoginData);
-        checkResponseForCourierLoginWithoutMandatoryField(response);
+        courierApi.checkResponseForCourierLoginWithoutMandatoryField(response);
     }
 
     // логин курьера с неправильным логином
     @Test
     @DisplayName("Login courier with wrong login")
-    public void courierLoginWrongLoginResponseNotFound(){
+    @Description("Negative test for courier Login with wrong login should response Not found")
+    public void courierLoginWrongLoginResponseNotFoundTest(){
         String wrongLogin = "Johnny";
         CourierLoginData copyOfCourierLoginData = new CourierLoginData(courierCreateData);
         copyOfCourierLoginData.setLogin(wrongLogin);
         ValidatableResponse response = courierApi.loginCourier(copyOfCourierLoginData);
-        checkResponseForCourierLoginWithWrongCredentials(response);
+        courierApi.checkResponseForCourierLoginWithWrongCredentials(response);
     }
 
     // логин курьера с неправильным паролем
     @Test
     @DisplayName("Login courier with wrong password")
-    public void courierLoginWrongPasswordResponseNotFound(){
+    @Description("Negative test for courier Login with wrong password should response Not found")
+    public void courierLoginWrongPasswordResponseNotFoundTest(){
         String wrongPassword = "12345";
         CourierLoginData copyOfCourierLoginData = new CourierLoginData(courierCreateData);
         copyOfCourierLoginData.setPassword(wrongPassword);
         ValidatableResponse response = courierApi.loginCourier(copyOfCourierLoginData);
-        checkResponseForCourierLoginWithWrongCredentials(response);
-    }
-
-    // проверка статуса и тела ответа при логине курьера с существующими данными
-    @Step("Check status code and response body for request with existing credentials")
-    public void checkResponseForCourierLoginExistingCredentials(ValidatableResponse response){
-        response.log().all()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .and()
-                .body(containsString("id"));
-    }
-
-    // проверка статуса и тела ответа при логине с неправильным логином или паролем
-    @Step("Check status code and response body for request with wrong credentials")
-    public void checkResponseForCourierLoginWithWrongCredentials(ValidatableResponse response){
-        response.log().all()
-                .assertThat()
-                .statusCode(HttpStatus.SC_NOT_FOUND)
-                .and()
-                .body("message", equalTo("Учетная запись не найдена"));
-    }
-
-    // проверка статуса и тела ответа при логине без обязательного поля
-    @Step("Check status code and response body for request without mandatory field")
-    public void checkResponseForCourierLoginWithoutMandatoryField(ValidatableResponse response){
-        response.log().all()
-                .assertThat()
-                .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .and()
-                .body("message", equalTo( "Недостаточно данных для входа"));
+        courierApi.checkResponseForCourierLoginWithWrongCredentials(response);
     }
 }

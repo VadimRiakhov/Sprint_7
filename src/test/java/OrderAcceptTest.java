@@ -1,18 +1,17 @@
 import api.CourierApi;
 import api.OrderApi;
-import io.qameta.allure.Step;
+import io.qameta.allure.Description;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
 import model.CourierCreateData;
+import model.CourierGeneratorData;
 import model.CourierLoginData;
-import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import model.NewOrderData;
 
 import static constants.ScooterColor.*;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
 
 public class OrderAcceptTest {
     private String orderId;
@@ -33,10 +32,6 @@ public class OrderAcceptTest {
         String comment = "Не звонить";
         String[] scooterColor = new String[]{BLACK};
 
-        String login = "John22";
-        String password = "1234";
-        String firstNameCourier = "John";
-
         orderApi = new OrderApi();
         courierApi = new CourierApi();
         CourierApi courierApi = new CourierApi();
@@ -49,7 +44,7 @@ public class OrderAcceptTest {
         orderId = orderApi.getOrderByTrack(orderTrack)
                 .extract().jsonPath().get("order.id").toString();
         // создаем объект класса создания курьера
-        CourierCreateData courierCreateData = new CourierCreateData(login, password, firstNameCourier);
+        CourierCreateData courierCreateData = CourierGeneratorData.getRandomCourier();
         // создаем курьера
         courierApi.createCourier(courierCreateData);
         // создаем объект класса логина курьера
@@ -70,77 +65,68 @@ public class OrderAcceptTest {
 
     // принимаем заказ с существующими id заказа и id курьера
     @Test
-    public void acceptOrderValidCredentialsResponseOk(){
+    @DisplayName("Order accept with existing order id and courier id")
+    @Description("Positive test with existing credentials should response Ok")
+    public void acceptOrderValidCredentialsResponseOkTest(){
         ValidatableResponse response = orderApi.acceptOrder(orderId, courierId);
-        checkResponseForOrderAcceptValidCredentials(response);
+        orderApi.checkResponseForOrderAcceptValidCredentials(response);
     }
 
     // принимаем заказ без id курьера
     @Test
-    public void acceptOrderWithoutCourierIdResponseBadRequest(){
+    @DisplayName("Order accept without courier id")
+    @Description("Negative test without courier id should response Bad request")
+    public void acceptOrderWithoutCourierIdResponseBadRequestTest(){
         ValidatableResponse response = orderApi.acceptOrder(orderId, "");
-        checkResponseForOrderAcceptWithoutMandatoryParameter(response);
+        orderApi.checkResponseForOrderAcceptWithoutMandatoryParameter(response);
     }
     // принимаем заказ без id заказа
     @Test
-    public void acceptOrderWithoutOrderIdResponseBadRequest(){
+    @DisplayName("Order accept without order id")
+    @Description("Negative test without order id should response Bad request")
+    public void acceptOrderWithoutOrderIdResponseBadRequestTest(){
         ValidatableResponse response = orderApi.acceptOrder("", courierId);
-        checkResponseForOrderAcceptWithoutMandatoryParameter(response);
+        orderApi.checkResponseForOrderAcceptWithoutMandatoryParameter(response);
     }
 
     // принимаем заказ с несуществующим id курьера
     @Test
-    public void acceptOrderWithNonexistentCourierIdResponseNotFound(){
+    @DisplayName("Order accept with nonexistent courier id")
+    @Description("Negative test with nonexistent courier id should response Not found")
+    public void acceptOrderWithNonexistentCourierIdResponseNotFoundTest(){
         String nonexistentCourierId = "999999";
         ValidatableResponse response = orderApi.acceptOrder(orderId, nonexistentCourierId);
-        checkResponseForOrderAcceptWithNonexistentCourierId(response);
+        orderApi.checkResponseForOrderAcceptWithNonexistentCourierId(response);
     }
 
     // принимаем заказ с несуществующим id заказа
     @Test
-    public void acceptOrderWithNonexistentOrderIdResponseNotFound(){
+    @DisplayName("Order accept with nonexistent order id")
+    @Description("Negative test with nonexistent order id should response Not found")
+    public void acceptOrderWithNonexistentOrderIdResponseNotFoundTest(){
         String nonexistentOrderId = "999999";
         ValidatableResponse response = orderApi.acceptOrder(nonexistentOrderId, courierId);
-        checkResponseForOrderAcceptWithNonexistentOrderId(response);
+        orderApi.checkResponseForOrderAcceptWithNonexistentOrderId(response);
     }
 
-    // проверяем ответ с валидными данными
-    @Step("check status and response body with valid credentials")
-    public void checkResponseForOrderAcceptValidCredentials(ValidatableResponse response){
-        response.log().all()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .and()
-                .body("ok", is(true));
-    }
-
-    // проверяем ответ запроса без id курьера или id заказа
-    @Step("check status and response body without mandatory parameter")
-    public void checkResponseForOrderAcceptWithoutMandatoryParameter(ValidatableResponse response){
-        response.log().all()
-                .assertThat()
-                .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .and()
-                .body("message", equalTo("Недостаточно данных для поиска"));
-    }
-
-    // проверяем ответ запроса с несуществующим id курьера
-    @Step("check status and response body with nonexistent courier id")
-    public void checkResponseForOrderAcceptWithNonexistentCourierId(ValidatableResponse response){
-        response.log().all()
-                .assertThat()
-                .statusCode(HttpStatus.SC_NOT_FOUND)
-                .and()
-                .body("message", equalTo("Курьера с таким id не существует"));
-    }
-
-    // проверяем ответ запроса с несуществующим id заказа
-    @Step("check status and response body with nonexistent order id")
-    public void checkResponseForOrderAcceptWithNonexistentOrderId(ValidatableResponse response){
-        response.log().all()
-                .assertThat()
-                .statusCode(HttpStatus.SC_NOT_FOUND)
-                .and()
-                .body("message", equalTo("Заказа с таким id не существует"));
+    // принимаем заказ, который уже принят другим курьером
+    @Test
+    @DisplayName("Order accept that accepted by another courier")
+    @Description("Negative test for accept order that accepted by another courier should response Conflict")
+    public void acceptOrderAcceptedByAnotherCourierResponseConflictTest(){
+        CourierCreateData anotherCourierCreateData = CourierGeneratorData.getRandomCourier();
+        // создаем еще одного курьера курьера
+        courierApi.createCourier(anotherCourierCreateData);
+        // создаем объект класса логина курьера
+        CourierLoginData anotherCourierLoginData = new CourierLoginData(anotherCourierCreateData);
+        // получаем id курьера
+        String anotherCourierId = courierApi.loginCourier(anotherCourierLoginData)
+                .extract().jsonPath().get("id").toString();
+        // принимаем заказ новым курьером
+        orderApi.acceptOrder(orderId, anotherCourierId);
+        // принимаем заказ курьером, созданным в Before
+        ValidatableResponse response = orderApi.acceptOrder(orderId, courierId);
+        orderApi.checkResponseForOrderAcceptedByAnotherCourier(response);
+        courierApi.deleteCourier(anotherCourierId);
     }
 }

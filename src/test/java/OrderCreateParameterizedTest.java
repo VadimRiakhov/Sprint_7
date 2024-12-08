@@ -1,7 +1,7 @@
 import api.OrderApi;
-import io.qameta.allure.Step;
+import io.qameta.allure.Description;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
-import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,7 +9,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import model.NewOrderData;
 import static constants.ScooterColor.*;
-import static org.hamcrest.CoreMatchers.containsString;
 
 @RunWith(Parameterized.class)
 public class OrderCreateParameterizedTest {
@@ -21,7 +20,7 @@ public class OrderCreateParameterizedTest {
         this.scooterColor = scooterColor;
     }
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name="цвет={0}")
     public static Object[][] getData(){
         return new Object[][]{
                 {new String[]{BLACK}},
@@ -43,7 +42,9 @@ public class OrderCreateParameterizedTest {
 
     // создание нового заказа с разными цветами самоката
     @Test
-    public void orderCreateDifferentScooterColorResponseCreated(){
+    @DisplayName("Order accept with different scooter color")
+    @Description("Positive test with valid credentials and different scooter color should response Created")
+    public void orderCreateDifferentScooterColorResponseCreatedTest(){
         String  firstName = "Иван";
         String lastName = "Иванов";
         String address = "Москва";
@@ -60,16 +61,6 @@ public class OrderCreateParameterizedTest {
         // получаем track номер заказа
         orderTrack = response.extract().jsonPath().get("track").toString();
         //проверяем ответ
-        checkResponseForOrderCreate(response);
-    }
-
-    // проверка статуса и тела ответа при создании заказа
-    @Step("Check status code and response body")
-    public void checkResponseForOrderCreate(ValidatableResponse response){
-        response.log().all()
-                .assertThat()
-                .statusCode(HttpStatus.SC_CREATED)
-                .and()
-                .body(containsString("track"));
+        orderApi.checkResponseForOrderCreateValidCredentials(response);
     }
 }

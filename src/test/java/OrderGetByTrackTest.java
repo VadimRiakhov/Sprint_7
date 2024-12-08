@@ -1,17 +1,15 @@
 import api.OrderApi;
-import io.qameta.allure.Step;
+import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
 import model.Order;
-import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import model.NewOrderData;
 
 import static constants.ScooterColor.*;
-import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
-import static org.hamcrest.CoreMatchers.equalTo;
+
 import static org.junit.Assert.assertEquals;
 
 // получение информации по заказу по track номеру
@@ -48,61 +46,35 @@ public class OrderGetByTrackTest {
     // запрос с существующим track номером
     @Test
     @DisplayName("Request for Get order with existing track number")
-    public void getOrderByExistingTrackResponseOk(){
+    @Description("Positive test for order cancel with existing track number should response Ok")
+    public void getOrderByExistingTrackResponseOkTest(){
         ValidatableResponse response = orderApi.getOrderByTrack(orderTrack);
-        checkResponseForGetOrderExistingTrack(response);
-    }
-
-    // запрос с несуществующим track номером
-    @Test
-    @DisplayName("Request for Get order with nonexistent track number")
-    public void getOrderByNonexistentTrackResponseNotFound(){
-        String nonexistentOrderTrack = "999999";
-        ValidatableResponse response = orderApi.getOrderByTrack(nonexistentOrderTrack);
-        checkResponseForGetOrderNonexistentTrack(response);
-    }
-
-    // запрос без track номера
-    @Test
-    @DisplayName("Request for Get order without track number")
-    public void getOrderWithoutTrackResponseBadRequest(){
-        String emptyOrderTrack = "";
-        ValidatableResponse response = orderApi.getOrderByTrack(emptyOrderTrack);
-        checkResponseForGetOrderWithoutTrack(response);
-    }
-
-    // проверка статуса и тела ответа при запросе с существующим track номером
-    @Step("check status code and response body for request with existing track number")
-    public void checkResponseForGetOrderExistingTrack(ValidatableResponse response){
-        // проверка статуса ответа, соответствие ответа схеме Json и десериализация ответа сервера
-        Order dataFromResponse = response.log().all()
-                                        .assertThat()
-                                        .statusCode(HttpStatus.SC_OK)
-                                        .and()
-                                        .body(matchesJsonSchemaInClasspath("orderGetByTrackSchema.json"))
-                                        .extract().as(Order.class);
+        Order dataFromResponse = response.extract().as(Order.class);
+        // проверяем статус ответа и соответсвие json схеме
+        orderApi.checkResponseForGetOrderExistingTrack(response);
         // приводим дату доставки к формату, который использовали при создании заказа
         dataFromResponse.getNewOrderData().setDeliveryDate(dataFromResponse.getNewOrderData().getDeliveryDate().substring(0,10));
         // сравниваем объект, который передавали в запрос, и объект, который получили в ответ
         assertEquals(newOrderData, dataFromResponse.getNewOrderData());
     }
 
-    @Step("check status code and response body for request with nonexistent track number")
-    public void checkResponseForGetOrderNonexistentTrack(ValidatableResponse response){
-        response.log().all()
-                .assertThat()
-                .statusCode(HttpStatus.SC_NOT_FOUND)
-                .and()
-                .body("message", equalTo("Заказ не найден"));
+    // запрос с несуществующим track номером
+    @Test
+    @DisplayName("Request for Get order with nonexistent track number")
+    @Description("Negative test for order cancel with nonexistent track number should response Not found")
+    public void getOrderByNonexistentTrackResponseNotFoundTest(){
+        String nonexistentOrderTrack = "999999";
+        ValidatableResponse response = orderApi.getOrderByTrack(nonexistentOrderTrack);
+        orderApi.checkResponseForGetOrderNonexistentTrack(response);
     }
 
-    @Step("check status code and response body for request without track number")
-    public void checkResponseForGetOrderWithoutTrack(ValidatableResponse response){
-        response.log().all()
-                .assertThat()
-                .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .and()
-                .body("message", equalTo("Недостаточно данных для поиска"));
+    // запрос без track номера
+    @Test
+    @DisplayName("Request for Get order without track number")
+    @Description("Negative test for order cancel without track number should response Bad request")
+    public void getOrderWithoutTrackResponseBadRequestTest(){
+        String emptyOrderTrack = "";
+        ValidatableResponse response = orderApi.getOrderByTrack(emptyOrderTrack);
+        orderApi.checkResponseForGetOrderWithoutTrack(response);
     }
-
 }
