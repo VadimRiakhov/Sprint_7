@@ -157,7 +157,7 @@ public class OrderApi extends RestApi{
     // проверка статуса и тела ответа при запросе с существующим track номером
     @Step("check status code and response body for request with existing track number")
     public void checkResponseForGetOrderExistingTrack(ValidatableResponse response){
-        // проверка статуса ответа, соответствие ответа схеме Json и десериализация ответа сервера
+        // проверка статуса ответа и соответствие ответа схеме Json
         response.log().all()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
